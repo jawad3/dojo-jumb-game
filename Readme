@@ -1,0 +1,43 @@
+#Take code base DevOps jump using git https://github.com/chandradeoarya/dojo-jump
+git clone https://github.com/chandradeoarya/dojo-jump
+cd dojo-jump 
+
+#Write Dockerfile 
+vim Dockerfile
+------------------------------------------------
+FROM nginx:latest
+ADD . /usr/share/nginx/html
+EXPOSE 80
+------------------------------------------------
+FROM nginx:latest
+WORKDIR /usr/share/nginx/html
+COPY . /usr/share/nginx/html
+EXPOSE 80
+------------------------------------------------
+#Write your name and cohort in index.html file line no. 21, 22.
+vim index.html
+
+#build the image
+#Using nginx launch the game on port 80
+docker build -t 059755/game:v1 .
+docker run -d -p 80:80 -v $(pwd):/usr/share/nginx/html/ 059755/game:v1
+
+
+#Bind the code path to docker #Rebuild image
+docker volume create gamev1
+docker run -d -p 80:80 -v $(pwd):/usr/share/nginx/html/ 059755/game:v1
+
+#Push the image to dockerhub public
+docker login
+docker push 059755/game:v1 
+
+#Using DockerSwarm deploy on two nodes
+#1-master
+docker swarm init
+docker node ls
+docker service create --replicas 2 -p 80:80 --name game1 059755/game:v1
+docker service ps game1
+#2-worker1
+docker swarm join --token SWMTKN-1-1i1xy9o3zaeiwqboirrw1hk1oel2a2hazr71f7t5y3d25xwm0p-a850edc500803riwu7sn8mz1b 172.31.6.116:2377
+#3-worker2
+docker swarm join --token SWMTKN-1-1i1xy9o3zaeiwqboirrw1hk1oel2a2hazr71f7t5y3d25xwm0p-a850edc500803riwu7sn8mz1b 172.31.6.116:2377
